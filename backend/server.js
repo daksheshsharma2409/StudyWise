@@ -5,6 +5,10 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
+import authRoutes from "./routes/auth.js";
+
+app.use("/api/auth", authRoutes);
+
 app.get("/health", (req, res) => {
     res.status(200).json({ status: "ok" });
 });
