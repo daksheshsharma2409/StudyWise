@@ -1,7 +1,6 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import { prisma } from "../db.js";
-import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -64,7 +63,9 @@ router.post("/login", async (req, res) => {
             sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
-
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+            expiresIn: "7d",
+        });
         res.status(200).json({
             user: { id: user.id, name: user.name, email: user.email },
         });
