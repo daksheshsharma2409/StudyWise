@@ -1,5 +1,6 @@
 import express from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { prisma } from "../db.js";
 
 const router = express.Router();
@@ -57,15 +58,17 @@ router.post("/login", async (req, res) => {
                 .json({ error: "Invalid email or password." });
         }
 
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+            expiresIn: "7d",
+        });
+
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-            expiresIn: "7d",
-        });
+
         res.status(200).json({
             user: { id: user.id, name: user.name, email: user.email },
         });
