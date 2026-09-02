@@ -41,6 +41,7 @@ model Resource {
   description  String?
   fileUrl      String
   publicId     String
+  resourceType String
   thumbnailUrl String?
   views        Int      @default(0)
   createdAt    DateTime @default(now())

@@ -65,6 +65,10 @@ router.delete("/:id", verifyToken, async (req, res) => {
                 .json({ error: "You can only delete your own resources." });
         }
 
+        await cloudinary.uploader.destroy(resource.publicId, {
+            resource_type: resource.resourceType,
+        });
+
         await prisma.resource.delete({ where: { id } });
 
         res.status(200).json({ message: "Resource deleted." });
@@ -106,6 +110,7 @@ router.post("/upload", verifyToken, upload.single("file"), async (req, res) => {
                 description,
                 fileUrl: result.secure_url,
                 publicId: result.public_id,
+                resourceType: result.resource_type,
                 thumbnailUrl,
                 userId: req.user.userId,
                 subjectId,
