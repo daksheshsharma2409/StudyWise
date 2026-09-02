@@ -7,6 +7,73 @@ import cloudinary from "../cloudinary.js";
 
 const router = express.Router();
 
+router.get("/", async (req, res) => {
+    try {
+        const resources = await prisma.resource.findMany({
+            orderBy: { createdAt: "desc" },
+            include: {
+                user: { select: { id: true, name: true } },
+                subject: { select: { id: true, name: true } },
+                votes: true,
+            },
+        });
+
+        res.status(200).json({ resources });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch resources." });
+    }
+});
+
+router.get("/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const resource = await prisma.resource.update({
+            where: { id },
+            data: { views: { increment: 1 } },
+            include: {
+                user: { select: { id: true, name: true } },
+                subject: { select: { id: true, name: true } },
+                votes: true,
+            },
+        });
+
+        res.status(200).json({ resource });
+    } catch (err) {
+        if (err.code === "P2025") {
+            return res.status(404).json({ error: "Resource not found." });
+        }
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch resource." });
+    }
+});
+
+router.delete("/:id", verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const resource = await prisma.resource.findUnique({ where: { id } });
+
+        if (!resource) {
+            return res.status(404).json({ error: "Resource not found." });
+        }
+
+        if (resource.userId !== req.user.userId) {
+            return res
+                .status(403)
+                .json({ error: "You can only delete your own resources." });
+        }
+
+        await prisma.resource.delete({ where: { id } });
+
+        res.status(200).json({ message: "Resource deleted." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to delete resource." });
+    }
+});
+
 router.post("/upload", verifyToken, upload.single("file"), async (req, res) => {
     try {
         const { title, description, subjectId } = req.body;
