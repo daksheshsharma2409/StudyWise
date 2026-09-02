@@ -36,12 +36,14 @@ model Subject {
 }
 
 model Resource {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
-  fileUrl     String
-  views       Int      @default(0)
-  createdAt   DateTime @default(now())
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  fileUrl      String
+  publicId     String
+  thumbnailUrl String?
+  views        Int      @default(0)
+  createdAt    DateTime @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
