@@ -8,6 +8,7 @@ import { ArrowRight, BookOpen, Loader2, Lock, Mail, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
 
 gsap.registerPlugin(useGSAP);
 
@@ -23,6 +24,7 @@ export default function AuthSwitch() {
     const loginPromptRef = useRef(null);
     const timelineRef = useRef(null);
     const hasMounted = useRef(false);
+    const { refetchUser } = useAuth();
 
     const [mode, setMode] = useState("login");
     const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -156,6 +158,7 @@ export default function AuthSwitch() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Login failed");
+            await refetchUser();
             router.push("/dashboard");
         } catch (err) {
             setError(err.message);

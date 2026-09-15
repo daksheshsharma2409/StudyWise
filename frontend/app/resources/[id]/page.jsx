@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import gsap from "gsap";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
 import { useGSAP } from "@gsap/react";
 import {
     ArrowLeft,
@@ -34,6 +36,22 @@ export default function ResourceDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [copied, setCopied] = useState(false);
+
+    const { user } = useAuth();
+    const router = useRouter();
+
+    async function handleDelete() {
+        if (!confirm("Delete this resource? This can't be undone.")) return;
+        const res = await fetch(`${API_URL}/api/resources/${id}`, {
+            method: "DELETE",
+            credentials: "include",
+        });
+        if (res.ok) {
+            router.push("/");
+        } else {
+            alert("Failed to delete.");
+        }
+    }
 
     // --- BACKEND LOGIC (UNTOUCHED) ---
     useEffect(() => {
@@ -306,6 +324,15 @@ export default function ResourceDetailPage() {
                                     </>
                                 )}
                             </button>
+
+                            {user?.id === resource.userId && (
+                                <button
+                                    onClick={handleDelete}
+                                    className="inline-flex h-11 items-center gap-1.5 rounded-full border border-red-300 bg-red-50 px-4 text-xs font-semibold text-red-600 hover:bg-red-100"
+                                >
+                                    Delete
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
