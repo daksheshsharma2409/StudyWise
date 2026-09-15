@@ -124,4 +124,79 @@ router.post("/upload", verifyToken, upload.single("file"), async (req, res) => {
     }
 });
 
+router.post("/:id/vote", verifyToken, async (req, res) => {
+    try {
+        const { id: resourceId } = req.params;
+        const { voteType } = req.body;
+        const userId = req.user.userId;
+
+        if (!["up", "down"].includes(voteType)) {
+            return res
+                .status(400)
+                .json({ error: "voteType must be 'up' or 'down'." });
+        }
+
+        const resource = await prisma.resource.findUnique({
+            where: { id: resourceId },
+        });
+        if (!resource) {
+            return res.status(404).json({ error: "Resource not found." });
+        }
+
+        const existingVote = await prisma.vote.findUnique({
+            where: { userId_resourceId: { userId, resourceId } },
+        });
+
+        const REP_VALUE = { up: 2, down: -1 };
+
+        if (!existingVote) {
+            // Case 1: fresh vote
+            await prisma.$transaction([
+                prisma.vote.create({ data: { userId, resourceId, voteType } }),
+                prisma.user.update({
+                    where: { id: resource.userId },
+                    data: {
+                        reputationScore: { increment: REP_VALUE[voteType] },
+                    },
+                }),
+            ]);
+        } else if (existingVote.voteType === voteType) {
+            // Case 2: clicking the same button again = un-vote
+            await prisma.$transaction([
+                prisma.vote.delete({ where: { id: existingVote.id } }),
+                prisma.user.update({
+                    where: { id: resource.userId },
+                    data: {
+                        reputationScore: { decrement: REP_VALUE[voteType] },
+                    },
+                }),
+            ]);
+        } else {
+            // Case 3: switching from up to down or vice versa
+            const delta =
+                REP_VALUE[voteType] - REP_VALUE[existingVote.voteType];
+            await prisma.$transaction([
+                prisma.vote.update({
+                    where: { id: existingVote.id },
+                    data: { voteType },
+                }),
+                prisma.user.update({
+                    where: { id: resource.userId },
+                    data: { reputationScore: { increment: delta } },
+                }),
+            ]);
+        }
+
+        const updatedResource = await prisma.resource.findUnique({
+            where: { id: resourceId },
+            include: { votes: true },
+        });
+
+        res.status(200).json({ votes: updatedResource.votes });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to register vote." });
+    }
+});
+
 export default router;

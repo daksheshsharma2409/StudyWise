@@ -11,12 +11,13 @@ import {
     Download,
     Share2,
     Eye,
-    ThumbsUp,
     Check,
     GraduationCap,
     AlertCircle,
     FileText,
     Sparkles,
+    ThumbsUp,
+    ThumbsDown,
 } from "lucide-react";
 import { FileViewer } from "@/components/file-viewer";
 
@@ -96,6 +97,26 @@ export default function ResourceDetailPage() {
             setTimeout(() => setCopied(false), 2500);
         }
     };
+
+    async function handleVote(voteType) {
+        try {
+            const res = await fetch(`${API_URL}/api/resources/${id}/vote`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ voteType }),
+            });
+            if (res.status === 401) {
+                alert("Please log in to vote.");
+                return;
+            }
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            setResource((prev) => ({ ...prev, votes: data.votes }));
+        } catch (err) {
+            alert(err.message);
+        }
+    }
 
     if (loading) {
         return (
@@ -220,12 +241,27 @@ export default function ResourceDetailPage() {
 
                             <span className="text-white/30">•</span>
 
-                            {/* Votes */}
-                            <span className="flex items-center gap-1">
-                                <ThumbsUp className="h-3.5 w-3.5 text-indigo-200" />
-                                <strong>{resource.votes?.length || 0}</strong>{" "}
-                                upvotes
-                            </span>
+                            {/* Votes - interactive, matches hero theme */}
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handleVote("up")}
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20"
+                                >
+                                    <ThumbsUp className="h-3.5 w-3.5" />
+                                    {resource.votes?.filter(
+                                        (v) => v.voteType === "up",
+                                    ).length || 0}
+                                </button>
+                                <button
+                                    onClick={() => handleVote("down")}
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20"
+                                >
+                                    <ThumbsDown className="h-3.5 w-3.5" />
+                                    {resource.votes?.filter(
+                                        (v) => v.voteType === "down",
+                                    ).length || 0}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Action buttons */}
