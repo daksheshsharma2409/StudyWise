@@ -42,7 +42,7 @@ router.post("/register", async (req, res) => {
                 .json({ error: "Email is already registered." });
         }
 
-        const passwordHash = await bcrypt.hash(password, 15);
+        const passwordHash = await bcrypt.hash(password, 12);
 
         const user = await prisma.user.create({
             data: { name, email, passwordHash },

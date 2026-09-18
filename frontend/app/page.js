@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import {
@@ -30,6 +31,7 @@ export default function HomePage() {
 
     const heroRef = useRef(null);
     const gridRef = useRef(null);
+    const router = useRouter();
 
     // --- BACKEND LOGIC (UNTOUCHED API CALL) ---
     useEffect(() => {
@@ -372,8 +374,18 @@ export default function HomePage() {
 
                                         <div className="mt-auto pt-4">
                                             <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-                                                {/* Author */}
-                                                <span className="flex items-center gap-1.5 truncate font-medium text-slate-600">
+                                                {/* Author - navigates to profile, stops the card's own link from firing */}
+                                                <span
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        if (r.user?.id)
+                                                            router.push(
+                                                                `/users/${r.user.id}`,
+                                                            );
+                                                    }}
+                                                    className="flex items-center gap-1.5 truncate font-medium text-slate-600 hover:text-indigo-600 hover:underline"
+                                                >
                                                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-700">
                                                         {(r.user?.name ||
                                                             "U")[0].toUpperCase()}

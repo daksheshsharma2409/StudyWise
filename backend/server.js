@@ -4,6 +4,7 @@ import authRoutes from "./routes/auth.js";
 import cookieParser from "cookie-parser";
 import resourceRoutes from "./routes/resources.js";
 import subjectRoutes from "./routes/subjects.js";
+import userRoutes from "./routes/users.js";
 import cors from "cors";
 
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(
 app.use("/api/resources", resourceRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 app.get("/health", (req, res) => {
     res.status(200).json({ status: "ok" });

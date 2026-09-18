@@ -23,8 +23,30 @@ model User {
   role             String   @default("student")
   createdAt        DateTime @default(now())
 
+  bio              String?
+  linkedinUrl      String?
+  githubUrl        String?
+  instagramUrl     String?
+  customWebsiteUrl String?
+  qualifications   String[] @default([])
+  isVerified       Boolean  @default(false)
+
   resources Resource[]
   votes     Vote[]
+
+  following Follow[] @relation("UserFollows")
+  followers Follow[] @relation("UserFollowedBy")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("UserFollows", fields: [followerId], references: [id])
+  followingId String
+  following   User     @relation("UserFollowedBy", fields: [followingId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
 }
 
 model Subject {

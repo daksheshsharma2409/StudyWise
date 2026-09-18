@@ -4,20 +4,20 @@ import { prisma } from "../db.js";
 import { verifyToken } from "../middleware/auth.js";
 import { upload } from "../middleware/upload.js";
 import cloudinary from "../cloudinary.js";
+import { getResourceOrderBy } from "../utils/sort.js";
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
     try {
         const resources = await prisma.resource.findMany({
-            orderBy: { createdAt: "desc" },
+            orderBy: getResourceOrderBy(req.query.sort),
             include: {
                 user: { select: { id: true, name: true } },
                 subject: { select: { id: true, name: true } },
                 votes: true,
             },
         });
-
         res.status(200).json({ resources });
     } catch (err) {
         console.error(err);
